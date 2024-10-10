@@ -1,5 +1,5 @@
 """
-Signals module for user management in Django.
+Signals module for user management.
 
 This module contains signal receivers that handle actions related to the
 User model.
