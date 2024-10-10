@@ -5,6 +5,7 @@ from rest_framework import filters
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer
 from rest_framework.pagination import PageNumberPagination
+from .permissions import IsAdminOrReadOnly
 
 
 class ProductPagination(PageNumberPagination):
@@ -66,7 +67,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
 
     # restrict access to admin users
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrReadOnly]
 
     # # Use custom pagination
     pagination_class = ProductPagination
@@ -106,4 +107,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
 
     # restrict access to admin users
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrReadOnly]
+
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+
+    search_fields = ['name']
+
+    filterset_fields = ['parent_category']
