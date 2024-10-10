@@ -26,6 +26,10 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    # Order by name by default
+    class Meta:
+        ordering = ['name']
+
 
 class Product(models.Model):
     """
@@ -71,3 +75,5 @@ class Product(models.Model):
                 name='positive_stock_quantity'
             )  # Stock quantity must be positive
         ]
+        # Order by name by default
+        ordering = ['name']
