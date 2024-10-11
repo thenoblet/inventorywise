@@ -103,8 +103,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email', 'firstname', 'lastname']
 
     class Meta:
         db_table = "user"
@@ -161,6 +161,16 @@ class Role(models.Model):
 
     class Meta:
         db_table = "role"
+    
+    def add_permission(self, permission_name):
+        perm, _ = Permission.objects.get_or_create(name=permission_name)
+        RolePermission.objects.get_or_create(role=self, permission=perm)
+    
+    def remove_permission(self, permission_name):
+        RolePermission.objects.filter(role=self, permission__name=permission_name).delete()
+        
+    def get_permissions(self):
+        return [rp.permission.name for rp in self.rolepermission_set.all()]
 
     def __str__(self):
         return self.name
@@ -198,3 +208,4 @@ class RolePermission(models.Model):
 
     def __str__(self):
         return f"{self.role.name} - {self.permission.name}"
+
