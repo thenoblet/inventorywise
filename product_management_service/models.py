@@ -77,3 +77,24 @@ class Product(models.Model):
         ]
         # Order by name by default
         ordering = ['name']
+
+
+class Inventory(models.Model):
+    """
+    Tracks stock movements in and out of inventory for a given product.
+    """
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inventory')
+    stock_in = models.PositiveIntegerField(default=0)
+    stock_out = models.PositiveIntegerField(default=0)
+    current_stock = models.PositiveIntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def update_stock(self):
+        """
+        Automatically updates the current stock based on incoming and outgoing movements.
+        """
+        self.current_stock = self.stock_in - self.stock_out
+        self.save()
+
+    def __str__(self):
+        return f'{self.product.name} - Current Stock: {self.current_stock}'
