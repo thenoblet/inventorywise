@@ -4,6 +4,7 @@ from rest_framework import status
 from django.urls import reverse
 from .models import Product, Category
 from django.contrib.auth.models import User
+from threading import Thread
 
 # Create your tests here.
 
@@ -287,3 +288,33 @@ class ProductManagementTests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Category.objects.filter(id=self.category.id).exists())
+
+    def test_simultaneous_product_updates(self):
+    # Create a new product to test on
+        product = Product.objects.create(
+            name="Tablet", sku="TAB12345", price=300, stock_quantity=20, category=self.category
+        )
+        url = reverse('product-detail', kwargs={'pk': product.id})
+
+    # First update thread
+    def update_product_1():
+            data = {"name": "Tablet - Updated 1", "sku": product.sku, "price": 400, "stock_quantity": 10, "category": self.category.id}
+            self.client.put(url, data, format='json')
+
+    # Second update thread
+    def update_product_2():
+            data = {"name": "Tablet - Updated 2", "sku": product.sku, "price": 500, "stock_quantity": 5, "category": self.category.id}
+            self.client.put(url, data, format='json')
+
+    # Run both updates simultaneously
+            thread1 = Thread(target=update_product_1)
+            thread2 = Thread(target=update_product_2)
+            thread1.start()
+            thread2.start()
+            thread1.join()
+            thread2.join()
+
+    # Fetch the product to check the final state
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertIn(response.data['name'], ['Tablet - Updated 1', 'Tablet - Updated 2'])
