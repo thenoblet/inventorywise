@@ -183,3 +183,77 @@ class ProductManagementTests(TestCase):
         }
         response = self.client.post(self.product_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # Test failure when creating product without a category
+    def test_create_product_without_category(self):
+        data = {
+            "name": "Smartwatch",
+            "sku": "SW12345",
+            "price": 199.99,
+            "stock_quantity": 8,
+            "category": None  # No category assigned
+        }
+        response = self.client.post(self.product_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # Test failure when creating product with non-existent category
+    def test_create_product_with_invalid_category(self):
+        data = {
+            "name": "Smartwatch",
+            "sku": "SW12345",
+            "price": 199.99,
+            "stock_quantity": 8,
+            "category": 9999  # Non-existent category
+        }
+        response = self.client.post(self.product_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # Test failure when creating a product without required fields
+    def test_create_product_without_required_fields(self):
+        data = {
+            "sku": "SM12345",
+            "price": 499.99,
+            "stock_quantity": 5,
+            "category": self.category.id
+        }
+        response = self.client.post(self.product_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('name', response.data)
+
+    # Test failure when creating a product with invalid SKU format
+    def test_create_product_with_invalid_sku(self):
+        data = {
+            "name": "Smartphone",
+            "sku": "",  # Empty SKU or invalid format
+            "price": 499.99,
+            "stock_quantity": 5,
+            "category": self.category.id
+        }
+        response = self.client.post(self.product_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('sku', response.data)
+
+    # Test product pagination
+    def test_product_pagination(self):
+        # Create more products to test pagination
+        for i in range(15):
+            Product.objects.create(
+                name=f"Product {i}",
+                sku=f"SKU-{i}",
+                price=100 + i,
+                stock_quantity=10 + i,
+                category=self.category
+            )
+
+        response = self.client.get(self.product_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('results', response.data)
+        # Assuming a page size of 10
+        self.assertLessEqual(len(response.data['results']), 10)
+        self.assertIn('next', response.data)  # Verify next page exists
+
+    # Test filtering products by category
+    def test_filter_product_by_category(self):
+        response = self.client.get(self.product_url + f'?category={self.category.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
