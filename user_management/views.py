@@ -50,7 +50,6 @@ class UserLoginView(APIView):
     def post(self, request):
         identifier = request.data.get('identifier')
         password = request.data.get('password')
-        print(identifier)
         
         if not identifier or not password:
             return Response({
