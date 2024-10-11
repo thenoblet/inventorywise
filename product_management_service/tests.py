@@ -365,3 +365,21 @@ class ProductManagementTests(TestCase):
         }
         response = self.client.post(self.product_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_product_pagination_empty_list(self):
+        Product.objects.all().delete()  # Ensure no products exist
+        response = self.client.get(self.product_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 0)
+        self.assertIn('next', response.data)
+        self.assertIsNone(response.data['next'])  # No next page if empty
+
+    def test_search_product_case_insensitive(self):
+        response = self.client.get(self.product_url + '?search=laptop')  # All lowercase
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+
+    def test_search_product_case_sensitive(self):
+        response = self.client.get(self.product_url + '?search=LapTop')  # Mixed case
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
