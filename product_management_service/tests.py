@@ -159,7 +159,7 @@ class ProductManagementTests(TestCase):
         response = self.client.post(self.product_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        # Test updating a product with invalid data (negative price)
+    # Test updating a product with invalid data (negative price)
     def test_update_product_with_invalid_data(self):
         data = {
             "name": "Invalid Laptop",
@@ -170,4 +170,16 @@ class ProductManagementTests(TestCase):
         }
         url = reverse('product-detail', kwargs={'pk': self.product.id})
         response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # Test failure when creating product with duplicate SKU
+    def test_create_product_with_duplicate_sku(self):
+        data = {
+            "name": "Tablet",
+            "sku": "LAP12345",  # Same SKU as the existing product
+            "price": 399.99,
+            "stock_quantity": 20,
+            "category": self.category.id
+        }
+        response = self.client.post(self.product_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
