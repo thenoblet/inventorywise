@@ -257,3 +257,33 @@ class ProductManagementTests(TestCase):
         response = self.client.get(self.product_url + f'?category={self.category.id}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 1)
+
+    # Test updating product without changing SKU
+    def test_update_product_without_changing_sku(self):
+        data = {
+            "name": "Laptop",
+            "sku": self.product.sku,  # Same SKU
+            "price": 1099.99,
+            "stock_quantity": 8,
+            "category": self.category.id
+        }
+        url = reverse('product-detail', kwargs={'pk': self.product.id})
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['sku'], self.product.sku)  # Verify SKU remains the same
+
+    # Test that regular users cannot delete products
+    def test_regular_user_cannot_delete_product(self):
+        self.client.logout()
+        self.client.login(username="user", password="userpass")
+
+        url = reverse('product-detail', kwargs={'pk': self.product.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    # Test deleting a category
+    def test_delete_category(self):
+        url = reverse('category-detail', kwargs={'pk': self.category.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Category.objects.filter(id=self.category.id).exists())
