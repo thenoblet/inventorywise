@@ -29,6 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
+AUTH_USER_MODEL = 'user_management.User'
 
 
 # Application definition
@@ -40,7 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'user_management',
+    'user_management.apps.UserManagementConfig',
+    'api',
 ]
 
 MIDDLEWARE = [
