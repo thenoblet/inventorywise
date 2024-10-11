@@ -383,3 +383,33 @@ class ProductManagementTests(TestCase):
         response = self.client.get(self.product_url + '?search=LapTop')  # Mixed case
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 1)
+
+    def test_filter_products_across_multiple_categories(self):
+    # Create another category
+        new_category = Category.objects.create(name="Furniture")
+
+    # Create product in the new category
+        Product.objects.create(
+            name="Chair", sku="CHAIR123", price=50, stock_quantity=15, category=new_category
+        )
+
+    # Filter by category (Furniture)
+        response = self.client.get(self.product_url + f'?category={new_category.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['name'], "Chair")
+
+    def test_partial_update_product(self):
+        url = reverse('product-detail', kwargs={'pk': self.product.id})
+
+        data = {"price": 799.99}  # Only updating price
+        response = self.client.patch(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(float(response.data['price']), 799.99) # Cast the response to float since a string was returned
+        self.assertEqual(response.data['name'], "Laptop")  # Name remains unchanged
+
+    def test_invalid_url_injection(self):
+        response = self.client.get(self.product_url + "?search=<script>alert('XSS')</script>")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)  # No crash
+        self.assertNotIn('<script>', str(response.data))  # Ensure no malicious content is returned
