@@ -318,3 +318,50 @@ class ProductManagementTests(TestCase):
             response = self.client.get(url)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertIn(response.data['name'], ['Tablet - Updated 1', 'Tablet - Updated 2'])
+
+    def test_create_product_with_large_input(self):
+        large_name = "A" * 1000  # Exceeds normal length
+        large_sku = "B" * 500
+
+        data = {
+            "name": large_name,
+            "sku": large_sku,
+            "price": 499.99,
+            "stock_quantity": 5,
+            "category": self.category.id
+        }
+        response = self.client.post(self.product_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_product_with_zero_price(self):
+        data = {
+            "name": "Free Product",
+            "sku": "FP12345",
+            "price": 0,
+            "stock_quantity": 10,
+            "category": self.category.id
+        }
+        response = self.client.post(self.product_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_product_with_zero_stock(self):
+        data = {
+            "name": "Out of Stock Product",
+            "sku": "OOS12345",
+            "price": 100,
+            "stock_quantity": 0,
+            "category": self.category.id
+        }
+        response = self.client.post(self.product_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_product_with_max_price(self):
+        data = {
+            "name": "Luxury Product",
+            "sku": "LX12345",
+            "price": 9999999999.99,  # Max price boundary
+            "stock_quantity": 5,
+            "category": self.category.id
+        }
+        response = self.client.post(self.product_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
