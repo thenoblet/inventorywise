@@ -1,19 +1,16 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import ProductViewSet, CategoryViewSet
+"""
+URL configuration for the product management service.
 
+This module defines the URL patterns for product and category
+resources, mapping them to their respective views.
+"""
 
-# Create a router and register our viewsets with it
-router = DefaultRouter()
+from django.urls import path
+from .views import ProductList, ProductDetail, CategoryList, CategoryDetail
 
-# Register the ProductViewSet with the router
-router.register(r'products', ProductViewSet)
-
-# Register the CategoryViewSet with the router
-router.register(r'categories', CategoryViewSet)
-
-
-# Include the router's URLs in the urlpatterns
 urlpatterns = [
-    path('', include(router.urls)),
+    path('products/', ProductList.as_view(), name='product-list'),
+    path('products/<int:pk>/', ProductDetail.as_view(), name='product-detail'),
+    path('categories/', CategoryList.as_view(), name='category-list'),
+    path('categories/<int:pk>/', CategoryDetail.as_view(), name='category-detail'),
 ]
