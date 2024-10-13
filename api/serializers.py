@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from user_management.models import User, Role, Profile, Permission, UserRole, RolePermission
-from product_management_service.models import Product, Category
+from product_management_service.models import Product, Category, Inventory
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -149,3 +149,8 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
+
+class InventorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inventory
+        fields = '__all__'
