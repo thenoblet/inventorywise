@@ -20,4 +20,4 @@ class UserManagementConfig(AppConfig):
         By importing the `signals` module, Django ensures that the signal handlers are connected
         to the relevant models.
         """
-        from . import signals
+        import user_management.signals
