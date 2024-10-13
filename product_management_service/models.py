@@ -17,7 +17,7 @@ class Category(models.Model):
         updated.
     """
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     parent_category = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
     description = models.TextField(null=False, default='No description provided')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -49,12 +49,12 @@ class Product(models.Model):
         updated_at (datetime): The timestamp when the product was last updated.
     """
 
-    sku = models.CharField(max_length=50, unique=True)  # SKU must be unique
+    sku = models.CharField(max_length=50, unique=True, blank=True)  # SKU must be unique
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     # Non-negative price
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock_quantity = models.PositiveIntegerField()  # Positive stock quantity
+    stock_quantity = models.PositiveIntegerField(default=0)  # Positive stock quantity
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
@@ -77,6 +77,9 @@ class Product(models.Model):
         ]
         # Order by name by default
         ordering = ['name']
+        
+    def __str__(self):
+        pass
 
 
 class Inventory(models.Model):
@@ -88,7 +91,14 @@ class Inventory(models.Model):
     stock_out = models.PositiveIntegerField(default=0)
     current_stock = models.PositiveIntegerField(default=0)
     last_updated = models.DateTimeField(auto_now=True)
-
+    
+    def save(self, *args, **kwargs):
+        """
+        Override the save method to update current_stock before saving.
+        """
+        self.current_stock = self.stock_in - self.stock_out
+        super().save(*args, **kwargs)
+        
     def update_stock(self):
         """
         Automatically updates the current stock based on incoming and outgoing movements.
@@ -97,4 +107,4 @@ class Inventory(models.Model):
         self.save()
 
     def __str__(self):
-        return f'{self.product.name} - Current Stock: {self.current_stock}'
+        return f'Product: {self.product.name} - Stock-In: {self.stock_in} - Stock-Out: {self.stock_out} - Current Stock: {self.current_stock}'

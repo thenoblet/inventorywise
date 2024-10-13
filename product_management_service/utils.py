@@ -11,7 +11,7 @@ def generate_sku(name, category):
     - The first 4 characters of the category name in uppercase,
     - The current date (in YYYY-MM-DD format) to ensure uniqueness.
     """
-    base_sku = slugify(name[:3])
+    base_sku = slugify(name[:4]).upper()
     category_initial = category.name[:4].upper()
     current_date = timezone.now().strftime('%Y-%m-%d')
 
