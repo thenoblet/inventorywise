@@ -1,10 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 from django.utils import timezone
 
 
 class ApiStatusView(APIView):
+    permission_classes = [AllowAny]
+    
     def get(self, request):
         formatted_time = timezone.now().strftime('%H:%M:%S, %Y-%m-%d')
         

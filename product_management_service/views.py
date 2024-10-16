@@ -121,7 +121,7 @@ class ProductDetail(APIView):
     GET: Returns the details of a single product.
     PUT: Updates an existing product.
     DELETE: Deletes a product.
-
+  
     Permission:
         Only admin users can update or delete products.
     """
