@@ -7,8 +7,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from .models import Product, Category, Inventory
 from api.serializers import ProductSerializer, CategorySerializer, InventorySerializer
+from api.utils import JWTAuthentication
+from user_management.permissions import has_permission
 from .utils import generate_sku
-from .permissions import IsAdminOrReadOnly
 
 
 class ProductPagination(PageNumberPagination):
@@ -38,7 +39,7 @@ class ProductList(APIView):
         Only admin users can create a product, but everyone can view the
         product list.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [JWTAuthentication]
 
     def get(self, request):
         """
@@ -50,6 +51,12 @@ class ProductList(APIView):
         Returns:
             Response: A paginated list of serialized product data.
         """
+        if not has_permission(request.user, 'view_item'):
+            return Response({
+                "message": "You do not have permission to view product list.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+         
         queryset = Product.objects.all()
 
         # Apply filters and search
@@ -75,6 +82,11 @@ class ProductList(APIView):
             Response: Serialized new product data or validation errors with
             status 400.
         """
+        if not has_permission(request.user, 'edit_item'):
+            return Response({
+                "message": "You do not have permission to add a product.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
         data = request.data
         
         category_name = data.get('category')
@@ -125,7 +137,7 @@ class ProductDetail(APIView):
     Permission:
         Only admin users can update or delete products.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [JWTAuthentication]
 
     def get(self, request, pk):
         """
@@ -138,6 +150,12 @@ class ProductDetail(APIView):
         Returns:
             Response: Serialized product data.
         """
+        if not has_permission(request.user, 'view_item'):
+            return Response({
+                "message": "You do not have permission to view product.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         product = get_object_or_404(Product, pk=pk)
         serializer = ProductSerializer(product)
         return Response(serializer.data)
@@ -154,6 +172,12 @@ class ProductDetail(APIView):
             Response: Serialized updated product data, or validation errors
             with status 400.
         """
+        if not has_permission(request.user, 'edit_item'):
+            return Response({
+                "message": "You do not have permission to update product.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         data = request.data
         category_name = data.get('category')
         if category_name:
@@ -189,6 +213,12 @@ class ProductDetail(APIView):
         Returns:
             Response: Empty response with status 204 on successful deletion.
         """
+        if not has_permission(request.user, 'delete_item'):
+            return Response({
+                "message": "You do not have permission to delete item.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         product = get_object_or_404(Product, pk=pk)
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -204,6 +234,12 @@ class ProductDetail(APIView):
         Returns:
             Response: Serialized product data or validation errors with status 400.
         """
+        if not has_permission(request.user, 'edit_item'):
+            return Response({
+                "message": "You do not have permission to update item.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+        
         product = get_object_or_404(Product, pk=pk)
         serializer = ProductSerializer(product, data=request.data, partial=True)  # Allow partial updates
 
@@ -238,7 +274,7 @@ class CategoryList(APIView):
         Only admin users can create a category, but everyone can view the
         category list.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [JWTAuthentication]
 
     def get(self, request):
         """
@@ -251,6 +287,11 @@ class CategoryList(APIView):
         Returns:
             Response: A paginated list of serialized category data.
         """
+        if not has_permission(request.user, 'view_item'):
+            return Response({
+                "message": "You do not have permission to view categories.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
         queryset = Category.objects.all()
 
         # Apply filters and search
@@ -276,6 +317,12 @@ class CategoryList(APIView):
             Response: Serialized category data with status 201 if successful,
             or validation errors with status 400.
         """
+        if not has_permission(request.user, 'edit_item'):
+            return Response({
+                "message": "You do not have permission to create categories.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -292,6 +339,12 @@ class CategoryList(APIView):
         Returns:
             Response: A message indicating successful deletion with status 204.
         """
+        if not has_permission(request.user, 'delete_item'):
+            return Response({
+                "message": "You do not have permission to delete categories.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+        
         Category.objects.all().delete()
         return Response({
             "message": "All categories have been deleted.",
@@ -310,7 +363,7 @@ class CategoryDetail(APIView):
     Permission:
         Only admin users can update or delete categories.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [JWTAuthentication]
 
     def get(self, request, pk):
         """
@@ -323,6 +376,12 @@ class CategoryDetail(APIView):
         Returns:
             Response: Serialized category data.
         """
+        if not has_permission(request.user, 'view_item'):
+            return Response({
+                "message": "You do not have permission to activate user.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         category = get_object_or_404(Category, pk=pk)
         serializer = CategorySerializer(category)
         return Response(serializer.data)
@@ -339,6 +398,12 @@ class CategoryDetail(APIView):
             Response: Serialized updated category data, or validation errors
             with status 400.
         """
+        if not has_permission(request.user, 'edit_item'):
+            return Response({
+                "message": "You do not have permission to update category.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         category = get_object_or_404(Category, pk=pk)
         serializer = CategorySerializer(category, data=request.data)
         if serializer.is_valid():
@@ -357,15 +422,26 @@ class CategoryDetail(APIView):
         Returns:
             Response: Empty response with status 204 on successful deletion.
         """
+        if not has_permission(request.user, 'delete_item'):
+            return Response({
+                "message": "You do not have permission to delete category.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         category = get_object_or_404(Category, pk=pk)
         category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProductInventoryView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [JWTAuthentication]
     
     def get(self, request, product_id):
+        if not has_permission(request.user, 'view_item'):
+            return Response({
+                "message": "You do not have permission to view product inventory.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
         product = get_object_or_404(Product, id=product_id)
         
         try:

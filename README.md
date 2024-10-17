@@ -16,8 +16,6 @@
 
 - **Search and Filtering**: Quickly find products using a robust search feature and apply filters based on categories, quantities, or other criteria.
 
-- **User-Friendly Interface**: An intuitive dashboard that provides a seamless experience for managing your inventory with minimal training.
-
 - **Multi-Location Support**: Manage inventory across multiple locations or warehouses, making it ideal for businesses with diverse operations.
 
 ## Technologies Used
