@@ -39,7 +39,7 @@ class ProductList(APIView):
         Only admin users can create a product, but everyone can view the
         product list.
     """
-    permission_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request):
         """
@@ -137,7 +137,7 @@ class ProductDetail(APIView):
     Permission:
         Only admin users can update or delete products.
     """
-    permission_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request, pk):
         """
@@ -274,7 +274,7 @@ class CategoryList(APIView):
         Only admin users can create a category, but everyone can view the
         category list.
     """
-    permission_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request):
         """
@@ -363,7 +363,7 @@ class CategoryDetail(APIView):
     Permission:
         Only admin users can update or delete categories.
     """
-    permission_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request, pk):
         """
@@ -434,7 +434,7 @@ class CategoryDetail(APIView):
 
 
 class ProductInventoryView(APIView):
-    permission_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
     
     def get(self, request, product_id):
         if not has_permission(request.user, 'view_item'):
