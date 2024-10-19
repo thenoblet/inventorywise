@@ -10,6 +10,7 @@ from api.serializers import ProductSerializer, CategorySerializer, InventorySeri
 from api.utils import JWTAuthentication
 from user_management.permissions import has_permission
 from .utils import generate_sku
+from .filters import ProductFilter
 
 
 class ProductPagination(PageNumberPagination):
@@ -40,6 +41,7 @@ class ProductList(APIView):
         product list.
     """
     authentication_classes = [JWTAuthentication]
+    search_fields = ['name']
 
     def get(self, request):
         """
@@ -59,10 +61,13 @@ class ProductList(APIView):
          
         queryset = Product.objects.all()
 
-        # Apply filters and search
-        filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-        for backend in filter_backends:
-            queryset = backend().filter_queryset(request, queryset, self)
+        # Apply filters using the ProductFilter class
+        product_filter = ProductFilter(request.query_params, queryset=queryset)
+        queryset = product_filter.qs
+
+        # Apply search functionality
+        search_backend = filters.SearchFilter()
+        queryset = search_backend.filter_queryset(request, queryset, self)
 
         # Apply pagination
         paginator = ProductPagination()
