@@ -79,8 +79,25 @@ class Product(models.Model):
         ordering = ['name']
         
     def __str__(self):
-        pass
+        return f'{self.name} (SKU: {self.sku})'
 
+
+class ProductVariant(models.Model):
+    """
+    Represents variations of a product, such as different colors or sizes.
+    """
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    variant_name = models.CharField(max_length=50)  # e.g., color, size
+    variant_value = models.CharField(max_length=50)  # e.g., red, large
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ['product', 'variant_name', 'variant_value']  # Ensures uniqueness within the same product
+
+    def __str__(self):
+        return f'{self.product.name} - {self.variant_name}: {self.variant_value}'
+    
 
 class Inventory(models.Model):
     """
@@ -105,6 +122,36 @@ class Inventory(models.Model):
         """
         self.current_stock = self.stock_in - self.stock_out
         self.save()
+        
+    def add_stock(self, quantity):
+        """
+        Add stock to the inventory and log the movement.
+        """
+        self.stock_in += quantity
+        InventoryMovement.objects.create(product=self.product, movement_type='IN', quantity=quantity)
+        self.update_stock()
+        
+    def remove_stock(self, quantity):
+        """
+        Remove stock from the inventory and log the movement.
+        """
+        self.stock_out += quantity
+        InventoryMovement.objects.create(product=self.product, movement_type='OUT', quantity=quantity)
+        self.update_stock()
 
     def __str__(self):
         return f'Product: {self.product.name} - Stock-In: {self.stock_in} - Stock-Out: {self.stock_out} - Current Stock: {self.current_stock}'
+
+
+class InventoryMovement(models.Model):
+    """
+    Records every movement (in or out) of inventory to track stock changes.
+    """
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='movements')
+    movement_type = models.CharField(max_length=10, choices=[('IN', 'Stock In'), ('OUT', 'Stock Out')])
+    quantity = models.PositiveIntegerField(default=0)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.product.name} - {self.movement_type}: {self.quantity} units on {self.timestamp}'
