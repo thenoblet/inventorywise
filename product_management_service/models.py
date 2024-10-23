@@ -82,6 +82,23 @@ class Product(models.Model):
         return f'{self.name} (SKU: {self.sku})'
 
 
+class ProductVariant(models.Model):
+    """
+    Represents variations of a product, such as different colors or sizes.
+    """
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    variant_name = models.CharField(max_length=50)  # e.g., color, size
+    variant_value = models.CharField(max_length=50)  # e.g., red, large
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ['product', 'variant_name', 'variant_value']  # Ensures uniqueness within the same product
+
+    def __str__(self):
+        return f'{self.product.name} - {self.variant_name}: {self.variant_value}'
+    
+
 class Inventory(models.Model):
     """
     Tracks stock movements in and out of inventory for a given product.
