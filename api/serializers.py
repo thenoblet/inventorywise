@@ -4,14 +4,20 @@ from product_management_service.models import Product, Category, Inventory
 
 
 class UserSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+    
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'firstname', 'middlename', 'lastname', 'is_active', 'is_staff']
+        fields = ['username', 'email', 'password', 'firstname', 'middlename', 'lastname', 'is_active', 'is_staff', 'role']
         extra_kwargs = {
             'password': {'write_only': True}  # Ensure the password is not read back
         }
 
-
+    def get_role(self, obj):
+        user_roles = UserRole.objects.filter(user=obj)
+        roles = [user_role.role for user_role in user_roles]
+        return RoleSerializer(roles, many=True).data
+    
     def create(self, validated_data):
         """
         Use CustomUserManager to create a user.

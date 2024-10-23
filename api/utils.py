@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import authentication, exceptions
 from datetime import datetime, timezone, timedelta
 import jwt
+from user_management.models import UserRole, RolePermission
 
 User = get_user_model()
 
@@ -19,7 +20,7 @@ def generate_token(user):
     user_id = str(user.id)
     payload = {
         "user_id": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=2),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24),
         'iat': datetime.now(timezone.utc)   
 	}
     
@@ -106,4 +107,4 @@ class JWTAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed("Refresh token has expired")
         except jwt.InvalidTokenError:
             raise exceptions.AuthenticationFailed('Invalid Refresh Token')
-            
+   

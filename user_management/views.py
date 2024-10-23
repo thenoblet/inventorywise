@@ -5,16 +5,24 @@ from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from api.serializers import UserSerializer, ProfileSerializer
 from django.db.models import Q
-from .models import Profile, User
+from .models import Profile, User, Role, UserRole
+from .permissions import has_permission
 from api.utils import generate_token, generate_refresh_token, JWTAuthentication
 
 
 class UserRegisterView(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [JWTAuthentication]
     
     def post(self, request):
+        if not has_permission(request.user, 'create_user'):
+            return Response({
+                "message": "You do not have permission to create user.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         username = request.data.get('username')
         email = request.data.get('email')
+        user_role = request.data.get('role')
         
         if User.objects.filter(username=username).exists():
             return Response({
@@ -31,12 +39,24 @@ class UserRegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            
+            if user_role:
+                try:
+                    role = Role.objects.get(name=user_role)
+                    UserRole.objects.create(user=user, role=role)
+                except Role.DoesNotExist:
+                    return Response({
+                        'message': "Role does not exist",
+                        "status_code": status.HTTP_400_BAD_REQUEST
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            
             return Response({
                 'message': "user created successfully",
                 'user': UserSerializer(user).data,
                 'status_code': status.HTTP_201_CREATED
             }, status=status.HTTP_201_CREATED)
-            
+        
+        # Return validation errors if any
         return Response({
             'message': 'Error resgistering user',
             'errors': serializer.errors,
@@ -61,6 +81,12 @@ class UserLoginView(APIView):
             user = User.objects.get(Q(email=identifier) | Q(username=identifier))
         except User.DoesNotExist:
             raise AuthenticationFailed('User Not Found')
+        
+        if not user.is_active:
+            return Response({
+                "message": "Account is deactivated",
+                "status_code": status.HTTP_400_BAD_REQUEST
+            }, status=status.HTTP_400_BAD_REQUEST)
         
         if not user.check_password(password):
             raise AuthenticationFailed("Incorrect Password")
@@ -113,6 +139,62 @@ class UserLogoutView(APIView):
             "status_code": status.HTTP_400_BAD_REQUEST
         }, status=status.HTTP_400_BAD_REQUEST)
             
+
+class UserDeactivateView(APIView):
+    def post(self, request):
+        if not has_permission(request.user, 'delete_user'):
+            return Response({
+                "message": "You do not have permission to deactivate user.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        email = request.data.get('email')
+        if not email:
+            return Response({
+                "message": "Email is required.",
+                "status_code": status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            User.objects.remove_user(email)
+            return Response({
+                "message": f"User with email {email} has been deactivated",
+                "status_code": status.HTTP_200_OK
+            }, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({
+                "message": f"User with email {email} does not exist",
+                "status_code": status.HTTP_404_NOT_FOUND
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+class UserActivateView(APIView):
+    def post(self, request):
+        if not has_permission(request.user, 'delete_user'):
+            return Response({
+                "message": "You do not have permission to activate user.",
+                "status_code": status.HTTP_403_FORBIDDEN
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        email = request.data.get('email')
+        if not email:
+            return Response({
+                "message": "Email is required.",
+                "status_code": status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            User.objects.activate_user(email)
+            return Response({
+                "message": f"User with email {email} has been activated",
+                "status_code": status.HTTP_200_OK
+            }, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({
+                "message": f"User with email {email} does not exist",
+                "status_code": status.HTTP_404_NOT_FOUND
+            }, status=status.HTTP_404_NOT_FOUND)
+
 
 class RefreshTokenView(APIView):
     authentication_classes = [JWTAuthentication]

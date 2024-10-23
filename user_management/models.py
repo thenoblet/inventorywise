@@ -74,6 +74,20 @@ class CustomUserManager(BaseUserManager):
         except self.model.DoesNotExist:
             raise ValueError(f"User with email: {email} does not exist")
 
+ 
+    def activate_user(self, email):
+        """
+        Activate a user by setting their 'is_active' field to True.
+
+        If no user is found, it raises a `User.DoesNotExist` exception.
+        """
+        try:
+            user = self.get(email=email)
+            user.is_active = True
+            user.save(using=self._db, update_fields=['is_active'])
+        except self.model.DoesNotExist:
+            raise ValueError(f"User with email: {email} does not exist")
+
     def update_user(self, email, **update_fields):
         """
         Update a user's information based on their email.
