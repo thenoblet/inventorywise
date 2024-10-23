@@ -20,7 +20,7 @@ def generate_token(user):
     user_id = str(user.id)
     payload = {
         "user_id": user_id,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=2),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24),
         'iat': datetime.now(timezone.utc)   
 	}
     
