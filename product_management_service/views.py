@@ -221,7 +221,7 @@ class ProductDetail(APIView):
             
         product = get_object_or_404(Product, pk=pk)
         product.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Product deleted successfuly"} ,status=status.HTTP_204_NO_CONTENT)
     
     def patch(self, request, pk):
         """
