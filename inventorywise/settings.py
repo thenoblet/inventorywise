@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +33,9 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 AUTH_USER_MODEL = 'user_management.User'
 
+# Other config
+COMPANY_NAME = 'InventoryWise'
+COMPANY_EMAIL = 'myinventorywise@gmail.com'
 
 # Application definition
 
@@ -51,6 +55,7 @@ INSTALLED_APPS = [
     
     # Third party
     'rest_framework',
+    'django_celery_beat',
     
     # CORS handling
     'corsheaders',
@@ -163,3 +168,33 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis as broker
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Redis as backend (optional)
+
+CELERY_BEAT_SCHEDULE = {
+    'send-stock-report-6am': {
+        'task': 'product_management_service.tasks.send_stock_report',
+        'schedule': crontab(hour=6, minute=0),
+    },
+    'send-stock-report-12pm': {
+        'task': 'product_management_service.tasks.send_stock_report',
+        'schedule': crontab(hour=12, minute=0),
+    },
+    'send-stock-report-6pm': {
+        'task': 'product_management_service.tasks.send_stock_report',
+        'schedule': crontab(hour=18, minute=0),
+    },
+}
+
+CELERY_TIMEZONE = 'Africa/Accra'
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = os.getenv('EMAIL')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
