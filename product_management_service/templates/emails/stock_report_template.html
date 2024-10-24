@@ -1,0 +1,115 @@
+{# emails/stock_report_template.html #}
+<div class="report-container">
+    <div class="header">
+        <h1>{{ company_name }}</h1>
+        <h2>{{ report_type }}</h2>
+        <div class="metadata">
+            <table class="metadata-table">
+                <tr>
+                    <td><strong>Generated:</strong></td>
+                    <td>{{ generated_at|date:"F j, Y H:i" }}</td>
+                    <td><strong>Total Products:</strong></td>
+                    <td>{{ total_products }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Low Stock Items:</strong></td>
+                    <td>{{ low_stock_count }}</td>
+                    {% if total_inventory_value %}
+                    <td><strong>Total Value:</strong></td>
+                    <td>${{ total_inventory_value|floatformat:2 }}</td>
+                    {% endif %}
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    {% if low_stock_count > 0 %}
+    <div class="alert-section">
+        <h3>Immediate Action Required</h3>
+        <table class="alert-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Current Stock</th>
+                    <th>Minimum</th>
+                    <th>Stock Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in low_stock_items|slice:":5" %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td class="numeric warning">{{ item.current_stock }}</td>
+                    <td class="numeric">{{ item.min_threshold }}</td>
+                    <td class="numeric">{{ item.stock_level_pct|floatformat:1 }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="main-content">
+        <h3>Inventory Status</h3>
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>SKU</th>
+                    <th class="numeric">Current</th>
+                    <th class="numeric">Min</th>
+                    <th class="numeric">Max</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in report %}
+                <tr {% if item.current_stock <= item.min_threshold %}class="warning-row"{% endif %}>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.sku }}</td>
+                    <td class="numeric">{{ item.current_stock }}</td>
+                    <td class="numeric">{{ item.min_threshold }}</td>
+                    <td class="numeric">{{ item.max_threshold }}</td>
+                    <td>
+                        {% if item.current_stock <= item.min_threshold %}
+                            {% if item.current_stock == 0 %}
+                                <span class="status-critical">Out of Stock</span>
+                            {% else %}
+                                <span class="status-warning">Low Stock</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="status-normal">Normal</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="summary">
+        <h3>Inventory Analysis</h3>
+        <table class="summary-table">
+            <tr>
+                <td width="50%" valign="top">
+                    <h4>Stock Level Overview</h4>
+                    <ul>
+                        <li>Average Stock Level: {{ report_summary.avg_stock_level|floatformat:1 }}%</li>
+                        <li>Items Below 50% Stock: {{ report_summary.items_below_50_pct }}</li>
+                        <li>Critical Items: {{ critical_items_count }}</li>
+                    </ul>
+                </td>
+                <td width="50%" valign="top">
+                    {% if critical_items %}
+                    <h4>Critical Items</h4>
+                    <ul>
+                        {% for item in critical_items|slice:":5" %}
+                        <li>{{ item.name }} (Stock: {{ item.current_stock }})</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

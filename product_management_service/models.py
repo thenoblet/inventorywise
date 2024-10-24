@@ -40,11 +40,11 @@ class Product(models.Model):
         name (str): The name of the product.
         description (str): A brief description of the product.
         price (Decimal): The price of the product (must be non-negative).
-        stock_quantity (PositiveIntegerField): The quantity of the product in
-        stock (must be positive).
-        category (ForeignKey): A reference to the category the product belongs
-        to.
+        stock_quantity (PositiveIntegerField): The quantity of the product in stock (must be positive).
+        category (ForeignKey): A reference to the category the product belongs to.
         barcode (str): An optional barcode for the product.
+        min_stock_threshold (PositiveIntegerField): The minimum stock level to trigger a low-stock alert.
+        max_stock_threshold (PositiveIntegerField): The maximum stock level to trigger a surplus alert.
         created_at (datetime): The timestamp when the product was created.
         updated_at (datetime): The timestamp when the product was last updated.
     """
@@ -61,6 +61,8 @@ class Product(models.Model):
         related_name='products'
     )  # ForeignKey to Category
     barcode = models.CharField(max_length=100, blank=True)
+    min_stock_threshold = models.PositiveIntegerField(default=10)
+    max_stock_threshold = models.PositiveIntegerField(default=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -155,3 +157,4 @@ class InventoryMovement(models.Model):
 
     def __str__(self):
         return f'{self.product.name} - {self.movement_type}: {self.quantity} units on {self.timestamp}'
+
