@@ -23,6 +23,10 @@
 - **Backend**: Django (Python) with Django REST Framework for building APIs.
 - **Database**: MySQL
 - **Authentication**: JWT (JSON Web Tokens) for secure user authentication.
+- **Jobs and Automation**: Celery, Redis
+- **Caching**: Redis
+- **HTML to PDF**: xhtml2pdf
+
 
 ## Installation
 
@@ -38,8 +42,8 @@ To install and run InventoryWise locally, follow these steps:
 2. **Set up the virtual environment**:
 
    ```bash
-   python -m venv env
-   source env/bin/activate  # On Windows use `env\Scripts\activate`
+   python -m venv inventorywise
+   source inventorywise/bin/activate  # On Windows use `inventorywise\Scripts\activate`
    ```
 
 3. **Install the dependencies**:
