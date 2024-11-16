@@ -65,6 +65,10 @@ To install and run InventoryWise locally, follow these steps:
    python manage.py runserver
    ```
 
+## PostMan API Documentation
+Detailed API documentation for all available endpoints can be found on Postman:
+[InventoryWise API Documentation](https://documenter.getpostman.com/view/32057989/2sAYBPkZhB)
+
 ## Contributing
 
 Contributions are welcome! If you would like to contribute to InventoryWise, please follow these steps:
